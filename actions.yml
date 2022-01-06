@@ -11,7 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: Check AWS CDK latest release
-      uses: morning-code/aws-cdk-update-checker@v1
+      uses: morning-code/aws-cdk-update-checker@v0.0.7
 
     - name: "Setup Node"
       uses: actions/setup-node@v2
