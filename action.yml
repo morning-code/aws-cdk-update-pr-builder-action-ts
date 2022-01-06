@@ -7,12 +7,23 @@ inputs:
     required: false
     description: 'version of nodejs'
 
+outputs:
+  latest_version:
+    description: 'AWS CDK latest version'
+
 runs:
   using: "composite"
   steps:
+    #- id: aws-cdk-update-checker
+    #  name: Check AWS CDK latest release
+    #  uses: morning-code/aws-cdk-update-checker@v0.0.14
     - id: aws-cdk-update-checker
       name: Check AWS CDK latest release
-      uses: morning-code/aws-cdk-update-checker@v0.0.14
+      uses: docker://morningcode/aws-cdk-update-checker:latest
+      entrypoint: "sh"
+        args:
+          - "-c"
+          - "echo '::set-output name=latest_version::$(aws_cdk_update_checker)'"
 
     - run: echo "::notice title=Output::${{ steps.aws-cdk-update-checker.outputs.latest_version }}"
       shell: bash
