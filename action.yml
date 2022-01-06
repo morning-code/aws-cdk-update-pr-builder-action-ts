@@ -7,28 +7,48 @@ inputs:
     required: false
     description: 'version of nodejs'
 
-outputs:
-  latest_version:
-    description: 'AWS CDK latest version'
+  token:
+    description: "access token"
+    required: true
+
+  base-branch:
+    default: 'main'
+    required: false
+    description: "base branch"
 
 runs:
   using: "composite"
   steps:
-    #- id: aws-cdk-update-checker
-    #  name: Check AWS CDK latest release
-    #  uses: morning-code/aws-cdk-update-checker@v0.0.14
     - id: aws-cdk-update-checker
       name: Check AWS CDK latest release
-      uses: docker://morningcode/aws-cdk-update-checker:latest
-      entrypoint: "sh"
-        args:
-          - "-c"
-          - "echo '::set-output name=latest_version::$(aws_cdk_update_checker)'"
+      uses: ./.github/actions/aws-cdk-update-checker
 
-    - run: echo "::notice title=Output::${{ steps.aws-cdk-update-checker.outputs.latest_version }}"
-      shell: bash
+    - run: echo "latest_version=${{ steps.aws-cdk-update-checker.outputs.latest_version }}"
+      shell: sh
 
-    - name: "Setup Node"
+    - name: Replace package.json
+      run: ./replace_version.sh ${{ steps.aws-cdk-update-checker.outputs.latest_version }}
+      shell: sh
+
+    - name: Setup Node
       uses: actions/setup-node@v2
       with:
         node-version: ${{ inputs.node-version }}
+
+    - name: Update package-lock.json
+      run: npm ci
+      shell: sh
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: ${{ inputs.token }}
+        commit-message: fix/aws-cdk-${{ steps.aws-cdk-update-checker.outputs.latest_version }}
+        signoff: false
+        base: ${{ inputs.base-branch }}
+        branch: fix/aws-cdk-${{ steps.aws-cdk-update-checker.outputs.latest_version }}
+        delete-branch: true
+        title: fix/aws-cdk-${{ steps.aws-cdk-update-checker.outputs.latest_version }}
+        body: "- [fix/aws-cdk-${{ steps.aws-cdk-update-checker.outputs.latest_version }}](https://github.com/aws/aws-cdk/releases/tag/v${{ steps.aws-cdk-update-checker.outputs.latest_version }})"
+        labels: aws-cdk-${{ steps.aws-cdk-update-checker.outputs.latest_version }}
+        draft: false
