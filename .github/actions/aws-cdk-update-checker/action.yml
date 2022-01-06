@@ -1,5 +1,5 @@
 name: AWS CDK update check action
-description: Check AWS CDK latest version and create Pull Request
+description: Check AWS CDK latest version
 author: morning-code
 branding:
   icon: 'trending-up'

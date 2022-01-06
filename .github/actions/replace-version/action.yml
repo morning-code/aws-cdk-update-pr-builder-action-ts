@@ -1,0 +1,17 @@
+name: Replace "aws-core" package version in package.json
+description: Replace "aws-core" package version in package.json
+author: morning-code
+branding:
+  icon: 'trending-up'
+  color: 'green'
+
+outputs:
+  latest_version:
+    description: 'AWS CDK latest version'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Replace version defined in package.json
+      run: ./.github/actions/replace-version/replace_version.sh ${{ steps.aws-cdk-update-checker.outputs.latest_version }}
+      shell: sh
